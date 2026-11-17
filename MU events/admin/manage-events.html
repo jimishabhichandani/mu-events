@@ -1,0 +1,381 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MU Events - Manage Events</title>
+
+    <link rel="stylesheet" href="admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <h2>MU EVENTS</h2>
+            <p>Admin Panel</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html">▦ &nbsp; Dashboard</a>
+            <a href="manage-events.html" class="active">▣ &nbsp; Events</a>
+            <a href="manage-registrations.html">▤ &nbsp; Registrations</a>
+            <a href="manage-users.html">♙ &nbsp; Users</a>
+            <a href="#" onclick="showSettings(event)">⚙ &nbsp; Settings</a>
+        </nav>
+
+        <a href="login.html" class="logout">↪ &nbsp; Logout</a>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="manage-main">
+
+        <div class="manage-heading">
+            <div>
+                <h1>Manage Events</h1>
+                <p>Create, edit and manage university events.</p>
+            </div>
+
+            <button class="manage-primary-btn" onclick="openAddForm()">
+                + Add New Event
+            </button>
+        </div>
+
+
+        <!-- Add / Edit Event Form -->
+        <section class="event-form-card" id="eventFormCard">
+
+            <h2 id="formTitle">Add New Event</h2>
+
+            <form id="eventForm">
+
+                <div class="event-form-grid">
+
+                    <div class="event-input-group">
+                        <label for="eventName">Event Name</label>
+                        <input type="text" id="eventName"
+                               placeholder="Enter event name" required>
+                    </div>
+
+                    <div class="event-input-group">
+                        <label for="eventDate">Event Date</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+
+                    <div class="event-input-group">
+                        <label for="eventCategory">Category</label>
+                        <select id="eventCategory" required>
+                            <option value="">Select Category</option>
+                            <option>Cultural</option>
+                            <option>Technical</option>
+                            <option>Sports</option>
+                            <option>Workshop</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="event-input-group">
+                        <label for="eventStatus">Status</label>
+                        <select id="eventStatus" required>
+                            <option>Upcoming</option>
+                            <option>Planned</option>
+                            <option>Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="event-input-group">
+                        <label for="eventRegistrations">Registrations</label>
+                        <input type="number" id="eventRegistrations"
+                               min="0" value="0" required>
+                    </div>
+
+                </div>
+
+                <div class="event-form-actions">
+                    <button type="submit" class="manage-primary-btn">
+                        Save Event
+                    </button>
+
+                    <button type="button" class="manage-cancel-btn"
+                            onclick="closeEventForm()">
+                        Cancel
+                    </button>
+                </div>
+
+            </form>
+        </section>
+
+
+        <!-- Events Table -->
+        <section class="manage-table-card">
+
+            <div class="manage-table-heading">
+                <h2>Recent Events</h2>
+
+                <input type="search" id="eventSearch"
+                       placeholder="Search events...">
+            </div>
+
+            <div class="manage-table-scroll">
+                <table class="manage-table">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Registration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="eventTableBody"></tbody>
+                </table>
+            </div>
+
+            <p class="event-count" id="eventCount"></p>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script>
+
+    // Sample event data
+    let events = [
+        {
+            name: "Annual Cultural Fest",
+            date: "2026-09-15",
+            category: "Cultural",
+            status: "Upcoming",
+            registrations: 120
+        },
+        {
+            name: "Technical Hackathon",
+            date: "2026-09-20",
+            category: "Technical",
+            status: "Upcoming",
+            registrations: 80
+        },
+        {
+            name: "Sports Meet",
+            date: "2026-09-25",
+            category: "Sports",
+            status: "Upcoming",
+            registrations: 74
+        },
+        {
+            name: "Student Workshop",
+            date: "2026-09-30",
+            category: "Workshop",
+            status: "Upcoming",
+            registrations: 62
+        },
+        {
+            name: "Business Conclave",
+            date: "2026-10-05",
+            category: "Cultural",
+            status: "Planned",
+            registrations: 0
+        }
+    ];
+
+    let editingIndex = -1;
+
+    const eventForm = document.getElementById("eventForm");
+    const eventFormCard = document.getElementById("eventFormCard");
+    const eventTableBody = document.getElementById("eventTableBody");
+
+
+    // Display events in the table
+    function displayEvents(searchText = "") {
+
+        eventTableBody.innerHTML = "";
+
+        let filteredEvents = events
+            .map((event, index) => ({ ...event, originalIndex: index }))
+            .filter(event =>
+                event.name.toLowerCase().includes(searchText.toLowerCase())
+            );
+
+        filteredEvents.forEach(event => {
+
+            let row = document.createElement("tr");
+
+            let nameCell = document.createElement("td");
+            nameCell.textContent = event.name;
+
+            let dateCell = document.createElement("td");
+            dateCell.textContent = new Date(event.date + "T00:00:00")
+                .toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                });
+
+            let categoryCell = document.createElement("td");
+            categoryCell.textContent = event.category;
+
+            let statusCell = document.createElement("td");
+            let statusBadge = document.createElement("span");
+            statusBadge.className = "event-status " +
+                event.status.toLowerCase();
+            statusBadge.textContent = event.status;
+            statusCell.appendChild(statusBadge);
+
+            let registrationCell = document.createElement("td");
+            registrationCell.textContent = event.registrations;
+
+            let actionCell = document.createElement("td");
+
+            let editButton = document.createElement("button");
+            editButton.className = "event-edit-btn";
+            editButton.textContent = "Edit";
+            editButton.addEventListener("click", function() {
+                editEvent(event.originalIndex);
+            });
+
+            let deleteButton = document.createElement("button");
+            deleteButton.className = "event-delete-btn";
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", function() {
+                deleteEvent(event.originalIndex);
+            });
+
+            actionCell.append(editButton, deleteButton);
+
+            row.append(
+                nameCell,
+                dateCell,
+                categoryCell,
+                statusCell,
+                registrationCell,
+                actionCell
+            );
+
+            eventTableBody.appendChild(row);
+        });
+
+        document.getElementById("eventCount").textContent =
+            "Showing " + filteredEvents.length + " events";
+    }
+
+
+    // Open form for adding an event
+    function openAddForm() {
+        editingIndex = -1;
+        eventForm.reset();
+        document.getElementById("formTitle").textContent = "Add New Event";
+        document.getElementById("eventRegistrations").value = 0;
+        eventFormCard.style.display = "block";
+        eventFormCard.scrollIntoView({ behavior: "smooth" });
+    }
+
+
+    // Close the form
+    function closeEventForm() {
+        eventFormCard.style.display = "none";
+        eventForm.reset();
+        editingIndex = -1;
+    }
+
+
+    // Save a new event or update an existing event
+    eventForm.addEventListener("submit", function(event) {
+
+        event.preventDefault();
+
+        let eventData = {
+            name: document.getElementById("eventName").value.trim(),
+            date: document.getElementById("eventDate").value,
+            category: document.getElementById("eventCategory").value,
+            status: document.getElementById("eventStatus").value,
+            registrations: Number(
+                document.getElementById("eventRegistrations").value
+            )
+        };
+
+        if (!eventData.name || !eventData.date || !eventData.category) {
+            alert("Please fill all required fields.");
+            return;
+        }
+
+        if (editingIndex === -1) {
+            events.push(eventData);
+            alert("Event added successfully!");
+        } else {
+            events[editingIndex] = eventData;
+            alert("Event updated successfully!");
+        }
+
+        closeEventForm();
+        displayEvents(document.getElementById("eventSearch").value);
+    });
+
+
+    // Edit an event
+    function editEvent(index) {
+
+        let event = events[index];
+
+        editingIndex = index;
+
+        document.getElementById("formTitle").textContent = "Edit Event";
+        document.getElementById("eventName").value = event.name;
+        document.getElementById("eventDate").value = event.date;
+        document.getElementById("eventCategory").value = event.category;
+        document.getElementById("eventStatus").value = event.status;
+        document.getElementById("eventRegistrations").value =
+            event.registrations;
+
+        eventFormCard.style.display = "block";
+        eventFormCard.scrollIntoView({ behavior: "smooth" });
+    }
+
+
+    // Delete an event
+    function deleteEvent(index) {
+
+        let confirmDelete = confirm(
+            "Are you sure you want to delete this event?"
+        );
+
+        if (confirmDelete) {
+            events.splice(index, 1);
+            displayEvents(document.getElementById("eventSearch").value);
+            alert("Event deleted successfully!");
+        }
+    }
+
+
+    // Search events
+    document.getElementById("eventSearch").addEventListener("input", function() {
+        displayEvents(this.value);
+    });
+
+
+    // Settings action
+    function showSettings(event) {
+        event.preventDefault();
+        alert("Settings section will be available in a future update.");
+    }
+
+
+    // Initial display
+    eventFormCard.style.display = "none";
+    displayEvents();
+
+</script>
+
+</body>
+</html>

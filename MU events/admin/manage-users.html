@@ -1,0 +1,529 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MU Events - Manage Users</title>
+
+    <link rel="stylesheet" href="admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <h2>MU EVENTS</h2>
+            <p>Admin Panel</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html">▦ &nbsp; Dashboard</a>
+            <a href="manage-events.html">▣ &nbsp; Events</a>
+            <a href="manage-registrations.html">▤ &nbsp; Registrations</a>
+            <a href="manage-users.html" class="active">♙ &nbsp; Users</a>
+            <a href="dashboard.html">⚙ &nbsp; Settings</a>
+        </nav>
+
+        <a href="login.html" class="logout">↪ &nbsp; Logout</a>
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="users-main">
+
+        <div class="users-heading">
+
+            <div>
+                <h1>Manage Users</h1>
+                <p>View, add and manage registered users.</p>
+            </div>
+
+            <button class="users-add-btn" onclick="openUserForm()">
+                + Add New User
+            </button>
+
+        </div>
+
+
+        <!-- Search -->
+        <div class="users-search">
+            <input
+                type="search"
+                id="userSearch"
+                placeholder="Search by name, email or role...">
+        </div>
+
+
+        <!-- Users Table -->
+        <section class="users-table-card">
+
+            <div class="users-table-heading">
+                <h2>Registered Users</h2>
+                <span id="totalUsers">Total Users: 0</span>
+            </div>
+
+            <div class="users-table-scroll">
+
+                <table class="users-table">
+
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>E-mail</th>
+                            <th>Role</th>
+                            <th>Join Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="usersTableBody"></tbody>
+
+                </table>
+
+            </div>
+
+            <p class="users-count" id="usersCount"></p>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- Add / Edit User Popup -->
+<div class="user-modal" id="userModal">
+
+    <div class="user-modal-content">
+
+        <button class="user-modal-close" onclick="closeUserForm()">×</button>
+
+        <h2 id="userFormTitle">Add New User</h2>
+
+        <form id="userForm">
+
+            <div class="user-form-group">
+                <label for="userName">Full Name</label>
+                <input type="text" id="userName"
+                       placeholder="Enter full name" required>
+            </div>
+
+            <div class="user-form-group">
+                <label for="userEmail">Email Address</label>
+                <input type="email" id="userEmail"
+                       placeholder="Enter email address" required>
+            </div>
+
+            <div class="user-form-group">
+                <label for="userRole">Role</label>
+                <select id="userRole" required>
+                    <option value="">Select Role</option>
+                    <option value="Student">Student</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="user-form-group">
+                <label for="userJoinDate">Join Date</label>
+                <input type="date" id="userJoinDate" required>
+            </div>
+
+            <div class="user-form-group">
+                <label for="userStatus">Status</label>
+                <select id="userStatus" required>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div class="user-form-actions">
+
+                <button type="submit" class="users-save-btn">
+                    Save User
+                </button>
+
+                <button type="button" class="users-cancel-btn"
+                        onclick="closeUserForm()">
+                    Cancel
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // Default sample users
+    const defaultUsers = [
+        {
+            name: "Rahul Patel",
+            email: "rahul@gmail.com",
+            role: "Student",
+            joinDate: "2026-08-01",
+            status: "Active"
+        },
+        {
+            name: "Priya Shah",
+            email: "priya@gmail.com",
+            role: "Student",
+            joinDate: "2026-08-05",
+            status: "Active"
+        },
+        {
+            name: "Arjun Mehta",
+            email: "arjun@gmail.com",
+            role: "Student",
+            joinDate: "2026-08-10",
+            status: "Active"
+        },
+        {
+            name: "Neha Joshi",
+            email: "neha@gmail.com",
+            role: "Student",
+            joinDate: "2026-08-12",
+            status: "Active"
+        },
+        {
+            name: "Admin User",
+            email: "admin@mu-events.com",
+            role: "Admin",
+            joinDate: "2026-08-01",
+            status: "Active"
+        }
+    ];
+
+
+    // Load users from browser storage
+    let users;
+
+    try {
+        const savedUsers = localStorage.getItem("muEventsUsers");
+        users = savedUsers ? JSON.parse(savedUsers) : defaultUsers;
+    } catch (error) {
+        users = defaultUsers;
+    }
+
+
+    let editingIndex = -1;
+
+
+    // Save users to browser storage
+    function saveUsers() {
+        localStorage.setItem("muEventsUsers", JSON.stringify(users));
+    }
+
+
+    // Display users
+    function displayUsers(searchText = "") {
+
+        const tableBody = document.getElementById("usersTableBody");
+
+        tableBody.innerHTML = "";
+
+        const filteredUsers = users
+            .map((user, index) => ({
+                ...user,
+                originalIndex: index
+            }))
+            .filter(user =>
+                user.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchText.toLowerCase()) ||
+                user.role.toLowerCase().includes(searchText.toLowerCase())
+            );
+
+
+        filteredUsers.forEach(user => {
+
+            const row = document.createElement("tr");
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = user.name;
+
+            const emailCell = document.createElement("td");
+            emailCell.textContent = user.email;
+
+            const roleCell = document.createElement("td");
+
+            const roleBadge = document.createElement("span");
+            roleBadge.className = "user-role " +
+                user.role.toLowerCase();
+            roleBadge.textContent = user.role;
+
+            roleCell.appendChild(roleBadge);
+
+
+            const dateCell = document.createElement("td");
+            dateCell.textContent = new Date(user.joinDate + "T00:00:00")
+                .toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                });
+
+
+            const statusCell = document.createElement("td");
+
+            const statusButton = document.createElement("button");
+
+            statusButton.className = "user-status-btn " +
+                user.status.toLowerCase();
+
+            statusButton.textContent = user.status;
+
+            statusButton.addEventListener("click", function() {
+
+                const newStatus =
+                    users[user.originalIndex].status === "Active"
+                    ? "Inactive"
+                    : "Active";
+
+                users[user.originalIndex].status = newStatus;
+
+                saveUsers();
+
+                displayUsers(
+                    document.getElementById("userSearch").value
+                );
+            });
+
+            statusCell.appendChild(statusButton);
+
+
+            const actionCell = document.createElement("td");
+
+
+            const editButton = document.createElement("button");
+
+            editButton.className = "user-edit-btn";
+            editButton.textContent = "Edit";
+
+            editButton.addEventListener("click", function() {
+                editUser(user.originalIndex);
+            });
+
+
+            const deleteButton = document.createElement("button");
+
+            deleteButton.className = "user-delete-btn";
+            deleteButton.textContent = "Delete";
+
+            deleteButton.addEventListener("click", function() {
+                deleteUser(user.originalIndex);
+            });
+
+
+            actionCell.append(editButton, deleteButton);
+
+            row.append(
+                nameCell,
+                emailCell,
+                roleCell,
+                dateCell,
+                statusCell,
+                actionCell
+            );
+
+            tableBody.appendChild(row);
+
+        });
+
+
+        document.getElementById("totalUsers").textContent =
+            "Total Users: " + users.length;
+
+        document.getElementById("usersCount").textContent =
+            "Showing " + filteredUsers.length + " users";
+
+    }
+
+
+    // Open add user form
+    function openUserForm() {
+
+        editingIndex = -1;
+
+        document.getElementById("userForm").reset();
+
+        document.getElementById("userFormTitle").textContent =
+            "Add New User";
+
+        document.getElementById("userJoinDate").value =
+            new Date().toISOString().split("T")[0];
+
+        document.getElementById("userStatus").value = "Active";
+
+        document.getElementById("userModal").style.display = "flex";
+
+    }
+
+
+    // Close user form
+    function closeUserForm() {
+
+        document.getElementById("userModal").style.display = "none";
+
+        document.getElementById("userForm").reset();
+
+        editingIndex = -1;
+
+    }
+
+
+    // Save or update user
+    document.getElementById("userForm")
+        .addEventListener("submit", function(event) {
+
+            event.preventDefault();
+
+            const userData = {
+
+                name: document.getElementById("userName").value.trim(),
+
+                email: document.getElementById("userEmail").value
+                    .trim().toLowerCase(),
+
+                role: document.getElementById("userRole").value,
+
+                joinDate: document.getElementById("userJoinDate").value,
+
+                status: document.getElementById("userStatus").value
+
+            };
+
+
+            if (!userData.name || !userData.email ||
+                !userData.role || !userData.joinDate) {
+
+                alert("Please fill all required fields.");
+                return;
+
+            }
+
+
+            const duplicateEmail = users.some((user, index) =>
+                user.email.toLowerCase() === userData.email &&
+                index !== editingIndex
+            );
+
+            if (duplicateEmail) {
+                alert("This email address is already registered.");
+                return;
+            }
+
+
+            if (editingIndex === -1) {
+
+                users.push(userData);
+
+                alert("User added successfully!");
+
+            } else {
+
+                users[editingIndex] = userData;
+
+                alert("User updated successfully!");
+
+            }
+
+
+            saveUsers();
+
+            closeUserForm();
+
+            displayUsers(
+                document.getElementById("userSearch").value
+            );
+
+        });
+
+
+    // Edit user
+    function editUser(index) {
+
+        const user = users[index];
+
+        editingIndex = index;
+
+        document.getElementById("userFormTitle").textContent =
+            "Edit User";
+
+        document.getElementById("userName").value = user.name;
+
+        document.getElementById("userEmail").value = user.email;
+
+        document.getElementById("userRole").value = user.role;
+
+        document.getElementById("userJoinDate").value = user.joinDate;
+
+        document.getElementById("userStatus").value = user.status;
+
+        document.getElementById("userModal").style.display = "flex";
+
+    }
+
+
+    // Delete user
+    function deleteUser(index) {
+
+        const confirmDelete = confirm(
+            "Are you sure you want to delete this user?"
+        );
+
+        if (confirmDelete) {
+
+            users.splice(index, 1);
+
+            saveUsers();
+
+            displayUsers(
+                document.getElementById("userSearch").value
+            );
+
+            alert("User deleted successfully!");
+
+        }
+
+    }
+
+
+    // Search users
+    document.getElementById("userSearch")
+        .addEventListener("input", function() {
+
+            displayUsers(this.value);
+
+        });
+
+
+    // Close popup when clicking outside
+    document.getElementById("userModal")
+        .addEventListener("click", function(event) {
+
+            if (event.target === this) {
+                closeUserForm();
+            }
+
+        });
+
+
+    // Initial display
+    displayUsers();
+
+</script>
+
+</body>
+</html>

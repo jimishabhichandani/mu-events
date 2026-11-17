@@ -1,0 +1,327 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MU Events - Manage Registrations</title>
+
+    <link rel="stylesheet" href="admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <h2>MU EVENTS</h2>
+            <p>Admin Panel</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html">▦ &nbsp; Dashboard</a>
+            <a href="manage-events.html">▣ &nbsp; Events</a>
+            <a href="manage-registrations.html" class="active">▤ &nbsp; Registrations</a>
+            <a href="manage-users.html">♙ &nbsp; Users</a>
+            <a href="dashboard.html">⚙ &nbsp; Settings</a>
+        </nav>
+
+        <a href="login.html" class="logout">↪ &nbsp; Logout</a>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="registration-main">
+
+        <div class="registration-heading">
+            <div>
+                <h1>Manage Registrations</h1>
+                <p>View and manage student event registrations.</p>
+            </div>
+
+            <button class="registration-report-btn" onclick="exportReport()">
+                ↓ &nbsp; Export Data
+            </button>
+        </div>
+
+
+        <!-- Search -->
+        <section class="registration-search">
+            <input
+                type="search"
+                id="registrationSearch"
+                placeholder="Search student or event name...">
+        </section>
+
+
+        <!-- Registration Table -->
+        <section class="registration-table-card">
+
+            <div class="registration-table-scroll">
+                <table class="registration-table">
+
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Event</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="registrationTableBody"></tbody>
+
+                </table>
+            </div>
+
+            <p class="registration-count" id="registrationCount"></p>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- Registration Details Modal -->
+<div class="registration-modal" id="registrationModal">
+
+    <div class="registration-modal-content">
+
+        <button class="modal-close" onclick="closeDetails()">×</button>
+
+        <h2>Registration Details</h2>
+
+        <div class="registration-details">
+            <p><strong>Student Name:</strong> <span id="detailName"></span></p>
+            <p><strong>Event:</strong> <span id="detailEvent"></span></p>
+            <p><strong>Date:</strong> <span id="detailDate"></span></p>
+            <p><strong>Email:</strong> <span id="detailEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="detailPhone"></span></p>
+            <p><strong>Status:</strong> <span id="detailStatus"></span></p>
+        </div>
+
+        <button class="registration-close-btn" onclick="closeDetails()">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // Sample registration data
+    let registrations = [
+        {
+            name: "Rahul",
+            event: "Hackathon",
+            date: "2026-09-20",
+            status: "Confirmed",
+            email: "rahul@example.com",
+            phone: "9876543210"
+        },
+        {
+            name: "Priya",
+            event: "Music Fest",
+            date: "2026-09-15",
+            status: "Confirmed",
+            email: "priya@example.com",
+            phone: "9876543211"
+        },
+        {
+            name: "Arjun",
+            event: "Sports Meet",
+            date: "2026-09-25",
+            status: "Pending",
+            email: "arjun@example.com",
+            phone: "9876543212"
+        },
+        {
+            name: "Megha",
+            event: "Workshop",
+            date: "2026-09-30",
+            status: "Confirmed",
+            email: "megha@example.com",
+            phone: "9876543213"
+        }
+    ];
+
+
+    // Display registrations
+    function displayRegistrations(searchText = "") {
+
+        const tableBody = document.getElementById("registrationTableBody");
+        tableBody.innerHTML = "";
+
+        let filtered = registrations
+            .map((item, index) => ({ ...item, originalIndex: index }))
+            .filter(item =>
+                item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                item.event.toLowerCase().includes(searchText.toLowerCase())
+            );
+
+        filtered.forEach(item => {
+
+            const row = document.createElement("tr");
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = item.name;
+
+            const eventCell = document.createElement("td");
+            eventCell.textContent = item.event;
+
+            const dateCell = document.createElement("td");
+            dateCell.textContent = new Date(item.date + "T00:00:00")
+                .toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                });
+
+            const statusCell = document.createElement("td");
+
+            const statusSelect = document.createElement("select");
+            statusSelect.className = "registration-status-select";
+            ["Confirmed", "Pending", "Cancelled"].forEach(status => {
+                const option = document.createElement("option");
+                option.value = status;
+                option.textContent = status;
+                if (item.status === status) {
+                    option.selected = true;
+                }
+                statusSelect.appendChild(option);
+            });
+
+            statusSelect.addEventListener("change", function() {
+                registrations[item.originalIndex].status = this.value;
+                displayRegistrations(
+                    document.getElementById("registrationSearch").value
+                );
+            });
+
+            statusCell.appendChild(statusSelect);
+
+            const actionCell = document.createElement("td");
+
+            const viewButton = document.createElement("button");
+            viewButton.className = "registration-view-btn";
+            viewButton.textContent = "View";
+            viewButton.addEventListener("click", function() {
+                viewDetails(item.originalIndex);
+            });
+
+            actionCell.appendChild(viewButton);
+
+            row.append(
+                nameCell,
+                eventCell,
+                dateCell,
+                statusCell,
+                actionCell
+            );
+
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById("registrationCount").textContent =
+            "Showing " + filtered.length + " registrations";
+    }
+
+
+    // View registration details
+    function viewDetails(index) {
+
+        const item = registrations[index];
+
+        document.getElementById("detailName").textContent = item.name;
+        document.getElementById("detailEvent").textContent = item.event;
+
+        document.getElementById("detailDate").textContent =
+            new Date(item.date + "T00:00:00").toLocaleDateString("en-GB");
+
+        document.getElementById("detailEmail").textContent = item.email;
+        document.getElementById("detailPhone").textContent = item.phone;
+        document.getElementById("detailStatus").textContent = item.status;
+
+        document.getElementById("registrationModal").style.display = "flex";
+    }
+
+
+    // Close details
+    function closeDetails() {
+        document.getElementById("registrationModal").style.display = "none";
+    }
+
+
+    // Search registrations
+    document.getElementById("registrationSearch")
+        .addEventListener("input", function() {
+            displayRegistrations(this.value);
+        });
+
+
+    // Export CSV report
+    function exportReport() {
+
+        if (registrations.length === 0) {
+            alert("There are no registrations to export.");
+            return;
+        }
+
+        let csv = "Student Name,Event,Date,Status,Email,Phone\n";
+
+        registrations.forEach(item => {
+            const values = [
+                item.name,
+                item.event,
+                item.date,
+                item.status,
+                item.email,
+                item.phone
+            ];
+
+            const escapedValues = values.map(value =>
+                '"' + String(value).replace(/"/g, '""') + '"'
+            );
+
+            csv += escapedValues.join(",") + "\n";
+        });
+
+        const blob = new Blob([csv], {
+            type: "text/csv;charset=utf-8;"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "MU-Events-Registrations.csv";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+
+    // Close modal when clicking outside
+    document.getElementById("registrationModal")
+        .addEventListener("click", function(event) {
+            if (event.target === this) {
+                closeDetails();
+            }
+        });
+
+
+    // Initial display
+    displayRegistrations();
+
+</script>
+
+</body>
+</html>

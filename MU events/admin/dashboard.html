@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MU Events - Admin Dashboard</title>
+
+    <link rel="stylesheet" href="admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <h2>MU EVENTS</h2>
+            <p>Admin Panel</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="active">▦ &nbsp; Dashboard</a>
+            <a href="manage-events.html">▣ &nbsp; Events</a>
+            <a href="manage-registrations.html">▤ &nbsp; Registrations</a>
+            <a href="manage-users.html">♙ &nbsp; Users</a>
+            <a href="#">⚙ &nbsp; Settings</a>
+        </nav>
+
+        <a href="login.html" class="logout">↪ &nbsp; Logout</a>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+
+        <div class="dashboard-heading">
+            <h1>Dashboard</h1>
+            <p>Welcome back! Here's what's happening with your events.</p>
+        </div>
+
+
+        <!-- Statistics -->
+        <section class="stats-grid">
+
+            <div class="stat-card">
+                <div class="stat-icon">▣</div>
+                <div>
+                    <p>Total Events</p>
+                    <h2>12</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">◷</div>
+                <div>
+                    <p>Upcoming Events</p>
+                    <h2>5</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">▤</div>
+                <div>
+                    <p>Registrations</p>
+                    <h2>364</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">♙</div>
+                <div>
+                    <p>Students</p>
+                    <h2>150</h2>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- Recent Events and Quick Actions -->
+        <section class="dashboard-content">
+
+            <div class="recent-events">
+
+                <div class="content-heading">
+                    <h2>Recent Events</h2>
+                    <a href="manage-events.html">View all</a>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Registrations</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>Annual Cultural Fest</td>
+                                <td>15 Sep</td>
+                                <td><span class="status upcoming">Upcoming</span></td>
+                                <td>120</td>
+                            </tr>
+
+                            <tr>
+                                <td>Technical Hackathon</td>
+                                <td>20 Sep</td>
+                                <td><span class="status upcoming">Upcoming</span></td>
+                                <td>80</td>
+                            </tr>
+
+                            <tr>
+                                <td>Sports Meet</td>
+                                <td>25 Sep</td>
+                                <td><span class="status upcoming">Upcoming</span></td>
+                                <td>74</td>
+                            </tr>
+
+                            <tr>
+                                <td>Student Workshop</td>
+                                <td>30 Sep</td>
+                                <td><span class="status upcoming">Upcoming</span></td>
+                                <td>62</td>
+                            </tr>
+
+                            <tr>
+                                <td>Business Conclave</td>
+                                <td>05 Oct</td>
+                                <td><span class="status planned">Planned</span></td>
+                                <td>28</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <a href="manage-events.html" class="view-events-btn">View Events</a>
+
+            </div>
+
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+
+                <h2>Quick Actions</h2>
+
+                <a href="manage-events.html" class="action-btn dark-action">
+                    + &nbsp; Add New Event
+                </a>
+
+                <a href="manage-registrations.html" class="action-btn">
+                    ▤ &nbsp; View Registrations
+                </a>
+
+                <a href="manage-users.html" class="action-btn">
+                    ♙ &nbsp; Manage Users
+                </a>
+
+                <a href="manage-registrations.html" class="action-btn">
+                    ◉ &nbsp; Generate Reports
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>
